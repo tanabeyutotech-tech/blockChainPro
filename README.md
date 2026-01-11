@@ -1,2 +1,2 @@
 # blockChainPro
-new plan
+new plans
