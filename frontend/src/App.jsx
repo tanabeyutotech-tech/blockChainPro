@@ -1,12 +1,10 @@
+import Header from "./components/Header";
 import Home from "./pages/Home";
-
-function App() {
-  // return <Home />;
-  return <div className="min-h-screen text-white bg-neutral-950">
-    <div className="mx-auto max-w-7xl">
+export default function App() {
+ return (
+    <div className="min-h-screen bg-neutral-950 text-white">
+      <Header />
       <Home />
     </div>
-  </div>
+  );
 }
-
-export default App;
