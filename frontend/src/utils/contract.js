@@ -1,18 +1,57 @@
 import { ethers } from "ethers";
-import NFT from "../abi/NFT.json";
-import Marketplace from "../abi/NFTMarketplace.json";
-import { NFT_ADDRESS, MARKETPLACE_ADDRESS } from "./constants";
-import { getSigner } from "./provider";
+import NFTArtifact from "../contracts/NFT.json";
+import MarketplaceArtifact from "../contracts/NFTMarketplace.json";
 
-export async function getContracts() {
-  const signer = await getSigner();
+// const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
+import { NFT_ADDRESS, MARKETPLACE_ADDRESS } from "../contracts/addresses";
 
-  const nft = new ethers.Contract(NFT_ADDRESS, NFT.abi, signer);
-  const marketplace = new ethers.Contract(
-    MARKETPLACE_ADDRESS,
-    Marketplace.abi,
+export const mintAndListNFT = async (tokenURI, nft_price, category) => {
+  if (!window.ethereum) {
+    alert("MetaMask not installed");
+    return;
+  }
+  console.log("ming1");
+  console.log(`nft price : ${nft_price}`);
+
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  const signer = await provider.getSigner();
+  console.log(`NFT_ADDRESS ${NFT_ADDRESS}`);
+
+  const contract = new ethers.Contract(
+    NFT_ADDRESS,
+    NFTArtifact.abi,
     signer
   );
 
-  return { nft, marketplace };
-}
+
+  const tx = await contract.mint(
+    await signer.getAddress(),
+    tokenURI);
+    await tx.wait();
+
+    const nextTokenId = await contract.nextTokenId();
+    const tokenId = Number(nextTokenId - 1n);
+
+    const approveTx = await contract.approve(
+    MARKETPLACE_ADDRESS,
+    tokenId
+    );
+    await approveTx.wait();    
+
+    const marketplace = new ethers.Contract(
+    MARKETPLACE_ADDRESS,
+    MarketplaceArtifact.abi,
+    signer
+    );
+
+    const priceInEth = "1"; // example
+    const price = ethers.parseEther(nft_price);
+
+    const listTx = await marketplace.ListNFT(
+    NFT_ADDRESS,
+    tokenId,
+    price
+    );
+    await listTx.wait();
+    
+};

@@ -1,26 +1,48 @@
-export default function Home({ walletOpen, onClose }) {
-  return (
-    <>
-      {/* all your sections here */}
+async function confirmSell(nft, price) {
+  if (!window.ethereum) return;
 
-      {walletOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-          <div className="w-[360px] rounded-xl bg-[#12172a] p-6 space-y-4">
-            <h3 className="text-lg font-semibold">Connect Wallet</h3>
+  try {
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
 
-            <button className="w-full py-3 bg-indigo-600 rounded-lg">
-              MetaMask
-            </button>
+    const nftContract = new ethers.Contract(
+      NFT_ADDRESS,
+      NFTArtifact.abi,
+      signer
+    );
 
-            <button
-              onClick={onClose}
-              className="w-full py-2 rounded-lg bg-white/10"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-    </>
-  );
+    const marketplace = new ethers.Contract(
+      MARKETPLACE_ADDRESS,
+      MarketplaceArtifact.abi,
+      signer
+    );
+
+    const priceWei = ethers.parseEther(price.toString());
+
+    // 1️⃣ Approve marketplace to transfer NFT
+    const approveTx = await nftContract.approve(
+      MARKETPLACE_ADDRESS,
+      nft.tokenId
+    );
+    await approveTx.wait();
+
+    // 2️⃣ List NFT
+    const listTx = await marketplace.listNFT(
+      NFT_ADDRESS,
+      nft.tokenId,
+      priceWei
+    );
+    await listTx.wait();
+
+    console.log("NFT listed!");
+
+    // 3️⃣ Refresh UI
+    await fetchListedNFTs();
+
+    // 4️⃣ Close modal
+    closeModal();
+
+  } catch (err) {
+    console.error("Sell failed:", err);
+  }
 }

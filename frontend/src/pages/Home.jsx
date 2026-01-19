@@ -1,13 +1,231 @@
 import TrendingNFTs from "../components/TrendingNFTs";
 import TopCollectors from "../components/TopCollectors";
-import LatestNFTs from "../components/LatestNFTs";
+import NFTCardPanel from "../components/NFTCardPanel";
+import MintListModal from "../components/MintListModal";
+import SellModal from "../components/nft/SellModal";
+import { useEffect, useState, useRef  } from "react";
+import { ethers } from "ethers";
 
+import NFTArtifact from "../contracts/NFT.json";
+import MarketplaceArtifact from "../contracts/NFTMarketplace.json";
 
-import { useState } from "react";
-import { useMarketplace } from "../hooks/useMarketplace";
+import { NFT_ADDRESS, MARKETPLACE_ADDRESS } from "../contracts/addresses";
 
-export default function Home({ walletOpen, onClose }) {
-    const { mintNFT } = useMarketplace();
+import { getContracts } from "../web3/getContracts";
+
+export default function Home({ walletOpen, onClose, walletConected, minted, mintedCallBack }) {
+    const [selectedNFT, setSelectedNFT] = useState(null);
+
+    function handleSellClick(nft) {
+        setSelectedNFT(nft);
+    }
+
+    function closeModal() {
+        setSelectedNFT(null);
+    }
+
+    async function confirmSell(nft, price) {
+        console.log("Selling NFT:", nft.tokenId, price);
+        if (!window.ethereum) return;
+
+        try {
+        // const provider = new ethers.BrowserProvider(window.ethereum);
+        // const signer = await provider.getSigner();
+        // const nft = new ethers.Contract(
+        //     NFT_ADDRESS,
+        //     NFTArtifact.abi,
+        //     signer
+        // );
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+
+            const nftContract = new ethers.Contract(
+            NFT_ADDRESS,
+            NFTArtifact.abi,
+            signer
+            );
+
+            const marketplace = new ethers.Contract(
+            MARKETPLACE_ADDRESS,
+            MarketplaceArtifact.abi,
+            signer
+            );
+
+            const priceWei = ethers.parseEther(price.toString());
+            console.log(`pricewei: ${priceWei}`);
+            // 1️⃣ Approve marketplace to transfer NFT
+            const approveTx = await nftContract.approve(
+                MARKETPLACE_ADDRESS,
+                nft.tokenId
+            );
+            await approveTx.wait();
+
+            // 2️⃣ List NFT
+            const listTx = await marketplace.ListNFT(
+                NFT_ADDRESS,
+                nft.tokenId,
+                priceWei
+            );
+            await listTx.wait();
+
+            console.log("NFT listed!");
+
+            // 3️⃣ Refresh UI
+            await fetchListedNFTs();
+
+            // 4️⃣ Close modal
+            closeModal();
+
+        } 
+        catch (err) {
+            console.error("Sell failed:", err);
+        }
+        closeModal();
+    }
+    const [common_NFTs, setCommonNFTs] = useState([]);
+    const [myNFTs, setMydNFTs] = useState([]);
+
+    function ipfsToHttp(ipfsUrl) {
+        if (!ipfsUrl) return "";
+        return ipfsUrl.replace(
+            "ipfs://",
+            "https://gateway.pinata.cloud/ipfs/"
+        );
+    }
+
+    useEffect(() => {
+        fetchListedNFTs();
+    }, []);
+
+    useEffect(() => {
+        if (walletConected) {
+            console.log(`walletRender`);
+            fetchListedNFTs();
+        }
+    }, [walletConected]);
+
+    useEffect(() => {
+        if (minted) {
+            console.log(`walletRender ${minted}`);
+            fetchListedNFTs();
+            mintedCallBack();
+        }
+    }, [minted]);
+
+    async function getMetaMaskInfo(){
+
+    }
+
+    async function buyNFT(NFT_ADDRESS, tokenId, priceInEth) {
+        if (!window.ethereum) return;
+
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const nft = new ethers.Contract(
+            NFT_ADDRESS,
+            NFTArtifact.abi,
+            signer
+        );
+
+        const marketplace = new ethers.Contract(
+            MARKETPLACE_ADDRESS,
+            MarketplaceArtifact.abi,
+            signer
+        );
+        console.log(`signer, nft: ${nft.nextTokenId()}`);
+        // 3. Convert price to wei
+        const price = ethers.parseEther(priceInEth.toString());
+        console.log(`price: ${price}`);
+        console.log(`price: ${NFT_ADDRESS}`);
+        console.log(`price: ${tokenId}`);
+        // // 4. Call buyNFT
+        const tx = await marketplace.buyNFT(NFT_ADDRESS, tokenId, {
+            value: price,
+        });
+        // console.log("Transaction sent:", tx.hash);
+
+        await tx.wait();
+        console.log("NFT bought successfully");
+
+        // alert("NFT bought successfully!");
+        await fetchListedNFTs();
+        console.log("Rerendered");
+
+    }    
+
+    async function fetchListedNFTs() {
+        console.log(`fetch function`);
+        if (!window.ethereum) return;
+
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const nft = new ethers.Contract(
+            NFT_ADDRESS,
+            NFTArtifact.abi,
+            signer
+        );
+
+        const marketplace = new ethers.Contract(
+            MARKETPLACE_ADDRESS,
+            MarketplaceArtifact.abi,
+            signer
+        );
+        console.log(`NFT_ADDRESS ${NFT_ADDRESS}`);
+        const nextTokenId = await nft.nextTokenId();
+        const common_items = [];
+        const my_items = [];
+        let item;
+
+        console.log(`nft itemnumber:  ${Number(nextTokenId)}`);
+        for (let tokenId = 0; tokenId < Number(nextTokenId); tokenId++) {
+        const listing = await marketplace.listings(
+            NFT_ADDRESS,
+            tokenId
+        );
+        //  console.log(`item num:  ${tokenId}`);
+
+        if (listing.price >= 0n) {
+            // console.log(`listitem 1: ${listing.price}`);
+            // console.log(`listitem2 : ${listing.seller}`);
+            const tokenURI = await nft.tokenURI(tokenId);
+            // console.log(`tokenURI:  ${tokenURI}`);
+            const metadataURL = ipfsToHttp(tokenURI);
+            // console.log(`metadataURL:  ${metadataURL}`);
+            const metadata = await fetch(metadataURL).then(res => res.json());
+            const owner = await nft.ownerOf(tokenId);
+            const currentAccount = (await signer.getAddress()).toLowerCase();
+            item =
+            {
+                tokenId,
+                price: ethers.formatEther(listing.price),
+                seller: listing.seller,
+                image: ipfsToHttp(metadata.image),
+                name: metadata.name,
+                description: metadata.description,
+                category: metadata.category,
+                buyNow: metadata.buyNow,
+                onAuction: metadata.onAuction
+
+            }
+            console.log(`item: price: ${item.price}`);
+            // owner.toLowerCase() === currentAccount
+            if(owner.toLowerCase() === currentAccount){
+                my_items.push(item);
+            }
+            else{
+                if(item.price > 0)
+                    common_items.push(item);
+            }
+        }
+        }
+
+        // const jj = Number(nextTokenId);
+        // console.log(`nft property: ${common_items.at(1).price}`);
+
+        setMydNFTs(my_items);
+        setCommonNFTs(common_items);
+        // console.log(`item num:  ${jj}`);
+    }    
 
     const [activeCategory, setActiveCategory] = useState("All");
     const [filters, setFilters] = useState({
@@ -83,14 +301,18 @@ export default function Home({ walletOpen, onClose }) {
     },
     
 ];
+    const [minting, setMinting] = useState(false);
 
-    const filteredNFTs = nftData.filter((nft) => {
+    const [showMintModal, setShowMintModal] = useState(false);
+
+    const filteredNFTs = common_NFTs.filter((nft) => {
     if (activeCategory !== "All" && nft.category !== activeCategory) return false;
     if (filters.buyNow && !nft.buyNow) return false;
     if (filters.onAuction && !nft.auction) return false;
     return true;
     });
 
+    
 
     return (
         <>
@@ -175,14 +397,36 @@ export default function Home({ walletOpen, onClose }) {
 
             {/* Main Content */}
             <section className="flex-1 space-y-14">
+
+                {/* <my NFTs /> */}
+                <div>
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-semibold">My NFTs</h2>
+                    </div>
+                    {
+                        <NFTCardPanel 
+                            filteredNFTs={myNFTs.slice(0,4)}
+                            placeholder={"Sell"}
+                            onSell={handleSellClick}
+                        />
+                    }
+                    {
+                        <SellModal
+                            nft={selectedNFT}
+                            onClose={closeModal}
+                            onConfirm={confirmSell}
+                        />
+                    }
+                    
+                </div>
+
                 {/* <TrendingNFTs /> */}
                 <div  className="space-y-6 ">
                     <h2 className="text-xl font-semibold">🔥 Trending NFTs</h2>
-
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {filteredNFTs.map((nft) => (
                         <div
-                            key={nft.id}
+                            key={nft.tokenId}
                             className="rounded-xl bg-[#12172a] overflow-hidden hover:scale-[1.02] transition"
                         >
                             {/* Image */}
@@ -206,7 +450,7 @@ export default function Home({ walletOpen, onClose }) {
                                     className="w-6 h-6 rounded-full"
                                 />
                                 <span className="text-xs text-white/60">
-                                    @{nft.creator}
+                                    {/* @{nft.seller} */}
                                 </span>
                                 </div>
 
@@ -215,8 +459,8 @@ export default function Home({ walletOpen, onClose }) {
                                 </span>
                             </div>
 
-                            <button className="w-full py-2 text-sm font-medium transition bg-indigo-600 rounded-lg hover:bg-indigo-500">
-                                Buy Now
+                            <button onClick={ () => { buyNFT(NFT_ADDRESS, nft.tokenId, nft.price)}} className="w-full py-2 text-sm font-medium transition bg-indigo-600 rounded-lg hover:bg-indigo-500">
+                                Buy Now 
                             </button>
                             </div>
                         </div>
@@ -265,8 +509,9 @@ export default function Home({ walletOpen, onClose }) {
                         </button>
                     </div>
                     {
-                        <LatestNFTs 
+                        <NFTCardPanel 
                             filteredNFTs={filteredNFTs.slice(0,4)}
+                            placeholder={"Latest"}
                         />
                     }
                     
@@ -276,6 +521,11 @@ export default function Home({ walletOpen, onClose }) {
 
 
         </div>
+
+        {/* 🔑 MODAL RENDERING — ALWAYS LAST */}
+        {showMintModal && (
+            <MintListModal onClose={() => setShowMintModal(false)} />
+        )}
 
     
         </>

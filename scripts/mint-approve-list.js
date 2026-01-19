@@ -10,8 +10,8 @@ async function main() {
     // const MARKETPLACE_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 
     // attach deployed nft + marketplace contracts
-    const NFT_ADDRESS = "0x6f036cDd7d4f30Da47D11f4a039e3db0ABFE57dC";
-    const MARKETPLACE_ADDRESS = "0xAca650127FAAfA4Bdf21FCC0bFCCaA68932d326E";
+    const NFT_ADDRESS = "0xECB55a2Cf50Bb2b7A247a17A086bDf70c18613EA";
+    const MARKETPLACE_ADDRESS = "0xF0D8D32157C5388250e593Eb5EBe577F83BB7E88";
     // const MARKETPLACE_ADDRESS = process.env.MARKETPLACE_ADDRESS;
 
     if(!hre.ethers.isAddress(NFT_ADDRESS)){
