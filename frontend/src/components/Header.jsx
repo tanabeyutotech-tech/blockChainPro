@@ -1,9 +1,11 @@
 import WalletModal from "./WalletModal";
 import {useEffect, useState } from "react";
-
-export default function Header({ onConnect }) {
+// , { onCreate } onWalletRerender
+export default function Header({ onConnect, onCreate, onWalletConnect, onWalletdisConnect}) {
   const [showModal, setShowModal] = useState(false);
   const [wallet, setWallet] = useState(null);
+  // const [walletRender, setWalletRender] = useState(false);
+
 
    useEffect(() => {
     const savedWallet = localStorage.getItem("walletAddress");
@@ -21,6 +23,7 @@ export default function Header({ onConnect }) {
     });
 
     setWallet(accounts[0]);
+    // setWalletRender(true);
     localStorage.setItem("walletAddress", accounts[0]);
     setShowModal(false);
   }
@@ -43,9 +46,9 @@ export default function Header({ onConnect }) {
 
         {/* Navigation */}
         <nav className="hidden gap-8 text-sm md:flex text-white/70">
-          <span className="cursor-pointer hover:text-white">Explore</span>
-          <span className="cursor-pointer hover:text-white">Collections</span>
-          <span className="cursor-pointer hover:text-white">Create</span>
+          <button className="cursor-pointer hover:text-white">Explore</button>
+          <button className="cursor-pointer hover:text-white">Collections</button>
+          <button onClick={onCreate}  className="cursor-pointer hover:text-white">Create</button>
         </nav>
 
         {/* Actions */}
@@ -58,14 +61,14 @@ export default function Header({ onConnect }) {
           {/* Wallet */}
           {wallet ? (
             <button
-              onClick={disconnectWallet}
+              onClick={() => {disconnectWallet(); onWalletdisConnect(),console.log("discon")}}
               className="px-4 py-2 text-sm rounded-lg bg-white/10 hover:bg-white/20"
             >
               {wallet.slice(0, 6)}...{wallet.slice(-4)}
             </button>
           ) : (
             <button
-              onClick={() => setShowModal(true)}
+              onClick={() =>{ setShowModal(true) } }
               className="px-4 py-2 text-sm font-medium bg-indigo-600 rounded-lg hover:bg-indigo-500"
             >
               Connect Wallet
@@ -79,7 +82,7 @@ export default function Header({ onConnect }) {
     {showModal && (
       <WalletModal
         onClose={() => setShowModal(false)}
-        onConnect={connectWallet}
+        onConnect={() => {connectWallet(); onWalletConnect(), console.log("con")}}
       />
     )}
 
@@ -88,3 +91,4 @@ export default function Header({ onConnect }) {
 
   );
 }
+// onWalletRerender();

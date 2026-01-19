@@ -4,6 +4,15 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
+interface IToken {
+    function mintFromMarketplace(
+        address to,
+        string memory uri
+    ) external returns (uint256);
+
+    function approve(address to, uint256 tokenId) external;
+}
+
 contract NFTMarketplace is ReentrancyGuard {
     struct Listing {
         address seller;
@@ -46,14 +55,46 @@ contract NFTMarketplace is ReentrancyGuard {
         uint256 sellerAmount = msg.value - fee;
 
         // send ETH
-        payable(item.seller).transfer(sellerAmount);
-        payable(owner).transfer(fee);
+        // payable(item.seller).transfer(sellerAmount);
+        // payable(owner).transfer(fee);
+
+        (bool successSeller, ) = payable(item.seller).call{ value: sellerAmount }("");
+        require(successSeller, "Seller payment failed");
+
+        (bool successOwner, ) = payable(owner).call{ value: fee }("");
+        require(successOwner, "Fee transfer failed");
 
         // transfer NFT
         IERC721(_nft).safeTransferFrom(item.seller, msg.sender, _tokenId);
 
         delete listings[_nft][_tokenId];
         emit Sale(_nft, _tokenId, msg.sender, item.price);
+    }
+
+    function mintAndListNFT(
+        address _nft,
+        string calldata tokenURI,
+        uint256 price
+    ) external nonReentrant {
+
+        require(price > 0, "Price must be > 0");
+
+        // mint NFT for user
+        uint256 tokenId = IToken(_nft).mintFromMarketplace(
+            msg.sender,
+            tokenURI
+        );
+
+        // approve marketplace
+        IToken(_nft).approve(address(this), tokenId);
+
+        // store listing
+        listings[_nft][tokenId] = Listing({
+            seller: msg.sender,
+            price: price
+        });
+
+        emit Listed(_nft, tokenId, msg.sender, price);
     }
     
 }

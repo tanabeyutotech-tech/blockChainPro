@@ -4,8 +4,8 @@ const { ethers } = require("hardhat");
 async function main(){
     const [buyer] = await ethers.getSigners();
 
-    const NFT_ADDRESS = "0x6f036cDd7d4f30Da47D11f4a039e3db0ABFE57dC";
-    const MARKETPLACE_ADDRESS = "0xAca650127FAAfA4Bdf21FCC0bFCCaA68932d326E";
+    const NFT_ADDRESS = "0xECB55a2Cf50Bb2b7A247a17A086bDf70c18613EA";
+    const MARKETPLACE_ADDRESS = "0xF0D8D32157C5388250e593Eb5EBe577F83BB7E88";
 
     const marketplace = await ethers.getContractAt("NFTMarketplace", MARKETPLACE_ADDRESS);
     
