@@ -66,61 +66,68 @@ const CreateModal = ({ onClose, onMinted }) => {
 
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal" ref={modalRef}>
-        <h2>Mint NFT</h2>
+      <div className="sell-modal" ref={modalRef}>
+        <h2 className="sell-title">Sell NFT</h2>
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setFile(e.target.files[0])}
-        />
+        {/* File Upload */}
+        <label className="file-upload">
+          Choose File
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => setFile(e.target.files[0])}
+          />
+        </label>
 
+        {/* NFT Name */}
         <input
           type="text"
           placeholder="NFT Name"
           value={name}
-            className="w-full px-3 py-2 mt-3 text-gray-900 placeholder-gray-400 bg-white border rounded-md"
           onChange={(e) => setName(e.target.value)}
+          className="sell-input"
         />
 
+        {/* Price */}
         <input
           type="text"
-          placeholder="NFT Price"
+          placeholder="Price in ETH"
           value={price}
-            className="w-full px-3 py-2 mt-3 text-gray-900 placeholder-gray-400 bg-white border rounded-md"
           onChange={(e) => setPrice(e.target.value)}
+          className="sell-input price-input"
         />
 
+        {/* Category */}
         <input
           type="text"
           placeholder="Category"
           value={category}
-            className="w-full px-3 py-2 mt-3 text-gray-900 placeholder-gray-400 bg-white border rounded-md"
           onChange={(e) => setCategory(e.target.value)}
+          className="sell-input"
         />
+
+        {/* Description */}
         <textarea
           placeholder="NFT Description"
           value={description}
-          className="w-full px-3 py-2 mt-3 text-gray-900 placeholder-gray-400 bg-white border rounded-md"          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => setDescription(e.target.value)}
+          className="sell-textarea"
         />
 
-        <div className="flex justify-end gap-3 mt-4">
-        {/* Cancel */}
-            <button
-                onClick={onClose}
-                className="px-4 py-2 text-gray-900 bg-gray-200 rounded-md hover:bg-gray-300"
-            >
-                Cancel
-            </button>
+        {/* Buttons */}
+        <div className="sell-actions">
+          <button className="btn-cancel" onClick={onClose}>
+            Cancel
+          </button>
 
-            {/* Mint */}
-            <button
-                onClick={handleMint}
-                disabled={loading}
-                className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-60"
-            >
-                {loading ? "Minting..." : "Mint NFT"}
-            </button>
+          <button
+            className="btn-confirm"
+            onClick={handleMint}
+            disabled={loading}
+          >
+            {loading ? "Minting..." : "Confirm"}
+          </button>
         </div>
       </div>
     </div>
