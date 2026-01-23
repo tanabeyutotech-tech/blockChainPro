@@ -32,17 +32,17 @@ export default function NFTCard({nft, placehoder, onSell,}) {
       </div>
 
       {/* Info */}
-      <div className="space-y-1">
+      {/* <div className="space-y-1">
         <p className="text-sm font-semibold truncate">{nft.title}</p>
         <p className="text-xs truncate text-white/40">{nft.creator}</p>
-      </div>
+      </div> */}
 
       {/* Meta */}
       <div className="flex items-center justify-between mt-3 text-sm">
-        <span className="text-blue-400">{nft.price} ETH</span>
+        <span className="text-blue-400">{nft.name}</span>
 
         <button className="flex items-center gap-1 transition text-white/40 hover:text-red-400">
-          ❤️ {nft.likes}k
+            {nft.price}ETH
         </button>
       </div>
     </div>
