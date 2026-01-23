@@ -1,6 +1,7 @@
 import TrendingNFTs from "../components/TrendingNFTs";
 import TopCollectors from "../components/TopCollectors";
 import NFTCardPanel from "../components/NFTCardPanel";
+import TrendCardPanel from "../components/TrendingNFTs";
 import MintListModal from "../components/MintListModal";
 import SellModal from "../components/nft/SellModal";
 import { useEffect, useState, useRef  } from "react";
@@ -264,7 +265,7 @@ export default function Home({ walletOpen, onClose, walletConected, minted, mint
                         Categories
                     </h3>
                     <ul className="space-y-3 text-sm">
-                        {["All", "Art", "Music", "Games", "Photography"].map((cat) => (
+                        {["All", "Art", "Music", "Games", "Photography", "Animals", "Bird", "Fish"].map((cat) => (
                             <button
                                 key={cat}
                                 onClick={() => setActiveCategory(cat)}
@@ -282,7 +283,7 @@ export default function Home({ walletOpen, onClose, walletConected, minted, mint
                     </div>
 
                     {/* Filters */}
-                    <div>
+                    {/* <div>
                     <h3 className="mb-4 text-sm font-semibold tracking-wide uppercase text-white/60">
                         Filters
                     </h3>
@@ -312,7 +313,7 @@ export default function Home({ walletOpen, onClose, walletConected, minted, mint
                         </label>
 
                     </div>
-                    </div>
+                    </div> */}
 
                     {/* Chains */}
                     {/* <div>
@@ -362,54 +363,16 @@ export default function Home({ walletOpen, onClose, walletConected, minted, mint
                 )}
 
                 {/* <TrendingNFTs /> */}
-                <div  className="space-y-6 text-slate-200 bg-gradient-to-r from-[#061f2f] to-[#020617] rounded-3xl p-6 shadow-lg shadow-cyan-500/10">
-                    <h2 className="text-xl font-semibold text-cyan-300 ">🔥 Trending NFTs</h2>
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {filteredNFTs.map((nft) => (
-                        <div
-                            key={nft.tokenId}
-                            className="rounded-2xl bg-gradient-to-b from-[#0b1d3a] to-[#050c1f] border border-cyan-500/10  shadow-lg shadow-cyan-500/10 overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-cyan-500/30">
-                            {/* Image */}
-                            <img
-                            src={nft.image}
-                            alt={nft.name}
-                            className="object-cover w-full h-56"
-                            />
 
-                            {/* Content */}
-                            <div className="p-4 space-y-3">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-sm font-medium">{nft.name}</h3>
-                                <span className="text-xs text-white/50">{nft.category}</span>
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                <img
-                                    src={nft.creatorAvatar}
-                                    className="w-6 h-6 rounded-full"
-                                />
-                                <span className="text-xs text-white/60">
-                                    {/* @{nft.seller} */}
-                                </span>
-                                </div>
-
-                                <span className="text-sm font-semibold text-indigo-400">
-                                {nft.price} ETH
-                                </span>
-                            </div>
-
-                            <button onClick={ () => { buyNFT(NFT_ADDRESS, nft.tokenId, nft.price)}} className="w-full py-2 text-sm font-medium transition bg-indigo-600 rounded-lg hover:bg-indigo-500">
-                                Buy Now 
-                            </button>
-                            </div>
-                        </div>
-                        ))}
-                    </div>
-                </div>
+                 {
+                    filteredNFTs.map((nft) => (
+                    <TrendCardPanel nft={nft}/>
+                    ))
+                    // <TrendCardPanel /> 
+                }
                 {/* <TopCollectors /> */}
-                <div>
-                    <div className="flex items-center justify-between mb-6">
+                {/* <div> */}
+                    {/* <div className="flex items-center justify-between mb-6">
                         <h2 className="text-xl font-semibold">Top Collectors</h2>
                         <select
                             className="rounded-lg bg-[#12172a] px-3 py-1 text-sm"
@@ -419,11 +382,11 @@ export default function Home({ walletOpen, onClose, walletConected, minted, mint
                             <option value="desc">Highest Volume</option>
                             <option value="asc">Lowest Volume</option>
                         </select>
-                    </div>
+                    </div> */}
 
-                    <div className="flex gap-4 overflow-x-auto rounded-xl bg-[#12172a] p-4">
+                    {/* <div className="flex gap-4 overflow-x-auto rounded-xl bg-[#12172a] p-4"> */}
                         {/* Collector rows */}
-                        {sortedCollectors.map((c, i) => (
+                        {/* {sortedCollectors.map((c, i) => (
                         <div
                             key={c.id}
                             className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/5"
@@ -435,11 +398,11 @@ export default function Home({ walletOpen, onClose, walletConected, minted, mint
                             <p className="text-xs text-white/40">{c.volume} ETH</p>
                             </div>
                         </div>
-                        ))}
+                        ))} */}
 
 
-                    </div>
-                </div>
+                    {/* </div> */}
+                {/* </div> */}
                 {/* <Latest NFTs /> */}
                 <div className="bg-gradient-to-r from-[#041b1a] to-[#020617]  rounded-3xl p-6 shadow-lg shadow-emerald-500/10">
                     <div className="flex items-center justify-between mb-6">

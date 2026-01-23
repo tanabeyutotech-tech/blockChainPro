@@ -115,13 +115,22 @@ const CreateModal = ({ onClose, onMinted }) => {
         />
 
         {/* Category */}
-        <input
-          type="text"
-          placeholder="Category"
+        
+
+        <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           className="sell-input"
-        />
+        >
+          <option value="" disabled>
+            Select Category
+          </option>
+          <option value="Art">Art</option>
+          <option value="Animals">Animals</option>
+          <option value="Music">Music</option>
+          <option value="Games">Games</option>
+          <option value="Photography">Photography</option>
+        </select>
 
         {/* Description */}
         <textarea
