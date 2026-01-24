@@ -14,16 +14,24 @@ contract NFT is ERC721URIStorage, Ownable {
 
     event Minted(address indexed to, uint256 indexed tokenId, string tokenURI);
 
-    constructor(        
+    constructor(
         string memory _name,
         string memory _symbol,
         string memory _cover,
         address _creator
-        ) ERC721("My NFT", "MNFT") Ownable(_creator) {
-            collectionName = _name;
-            collectionSymbol = _symbol;
-            collectionCover = _cover;
-        }
+    )
+        ERC721(_name, _symbol)
+        Ownable(_creator)
+    {
+        collectionName = _name;
+        collectionSymbol = _symbol;
+        collectionCover = _cover;
+    }
+
+    function getCollectionName() external view returns(string memory) {
+        return collectionName;
+    }
+
 
     function setMarketplace(address _marketplace) external onlyOwner {
         marketplace = _marketplace;
@@ -42,12 +50,17 @@ contract NFT is ERC721URIStorage, Ownable {
         _;
     }
 
-    function mint(address to, string memory uri)
-        external 
+    function mint(
+        address to,
+        string memory uri
+    )
+        external
         onlyAuthorized
         returns (uint256)
     {
-        uint256 tokenId = nextTokenId++;
+        uint256 tokenId = nextTokenId;
+        nextTokenId++;
+
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
 
@@ -55,12 +68,17 @@ contract NFT is ERC721URIStorage, Ownable {
         return tokenId;
     }
 
-    function mintFromMarketplace(address to, string memory uri)
+    function mintFromMarketplace(
+        address to,
+        string memory uri
+    )
         external
         onlyMarketplace
         returns (uint256)
     {
-        uint256 tokenId = nextTokenId++;
+        uint256 tokenId = nextTokenId;
+        nextTokenId++;
+
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
 

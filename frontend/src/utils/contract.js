@@ -1,92 +1,66 @@
 import { ethers } from "ethers";
 import NFTArtifact from "../contracts/NFT.json";
 import MarketplaceArtifact from "../contracts/NFTMarketplace.json";
+import { MARKETPLACE_ADDRESS } from "../contracts/addresses";
 
-// const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
-import { NFT_ADDRESS, MARKETPLACE_ADDRESS } from "../contracts/addresses";
-
-export const mintAndListNFT = async (tokenURI, nft_price, category) => {
+/**
+ * Mint NFT into a SPECIFIC collection + list on marketplace
+ */
+export const mintAndListNFT = async (
+  collectionAddress,
+  tokenURI,
+  nft_price
+) => {
   if (!window.ethereum) {
     alert("MetaMask not installed");
     return;
   }
-  console.log("ming1");
-  console.log(`nft price : ${nft_price}`);
 
   const provider = new ethers.BrowserProvider(window.ethereum);
   const signer = await provider.getSigner();
-  console.log(`NFT_ADDRESS ${NFT_ADDRESS}`);
 
-  const contract = new ethers.Contract(
-    NFT_ADDRESS,
+  // 🔥 collection contract (dynamic)
+  const collection = new ethers.Contract(
+    collectionAddress,
     NFTArtifact.abi,
     signer
   );
 
-  console.log(`get contract `);
-
-  // await contract.setMarketplace(MARKETPLACE_ADDRESS);
-
-  console.log(`setmarketpalce `);
-
-  // const tx = await contract.mint(
-  //   await signer.getAddress(),
-  //   tokenURI);
-  //   await tx.wait();
-
-    // const nextTokenId = await contract.nextTokenId();
-    // const tokenId = Number(nextTokenId - 1n);
-
-    // const approveTx = await contract.approve(
-    // MARKETPLACE_ADDRESS,
-    // tokenId
-    // );
-    // await approveTx.wait();    
-
-    const marketplace = new ethers.Contract(
+  // marketplace contract
+  const marketplace = new ethers.Contract(
     MARKETPLACE_ADDRESS,
     MarketplaceArtifact.abi,
     signer
-    );
-    const ty = await contract.setApprovalForAll(MARKETPLACE_ADDRESS, true);
-    await ty.wait();
+  );
 
-    console.log(`marketpalce `);
+  // approve marketplace
+  const approveTx = await collection.setApprovalForAll(
+    MARKETPLACE_ADDRESS,
+    true
+  );
+  await approveTx.wait();
 
-    const price = ethers.parseEther(nft_price);
-    console.log(`price: ${price} `);
+  const price = ethers.parseEther(nft_price);
 
-    const tx = await marketplace.mintAndListNFT(
-      NFT_ADDRESS,
-      tokenURI,
-      price
-    );
-    console.log(`marketpalceAdreess : ${MARKETPLACE_ADDRESS} `);
+  // 🔥 mint + list
+  const tx = await marketplace.mintAndListNFT(
+    collectionAddress,
+    tokenURI,
+    price
+  );
 
-    await tx.wait();
-    // const tx = await marketplace.mintAndListNFT(
-    //   NFT_ADDRESS,
-    //   tokenURI,
-    //   price
-    // );
-
-    // const priceInEth = "1"; // example
-
-    // const listTx = await marketplace.ListNFT(
-    // NFT_ADDRESS,
-    // tokenId,
-    // price
-    // );
-    // await listTx.wait();
-    
+  await tx.wait();
 };
 
-export const approveMarketplace = async () => {
+/**
+ * Optional helper
+ */
+export const approveMarketplace = async (collectionAddress) => {
   const provider = new ethers.BrowserProvider(window.ethereum);
   const signer = await provider.getSigner();
 
   const nft = new ethers.Contract(
-    NFT_ADDRESS,
+    collectionAddress,
     NFTArtifact.abi,
     signer
   );

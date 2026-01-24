@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { fetchAllNFTs } from "../web3/fetchNFTs";
 
 export default function CollectionDetail() {
-  const { collectionId: collectionAddress } = useParams();
+  const { collectionId } = useParams(); // ✅ FIX
   const [nfts, setNfts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -11,12 +11,15 @@ export default function CollectionDetail() {
     async function loadNFTs() {
       try {
         const allNFTs = await fetchAllNFTs();
+
         const filtered = allNFTs.filter(
-          (nft) => nft.collection === collectionId
+          (nft) =>
+            nft.collection?.toLowerCase() === collectionId.toLowerCase()
         );
+
         setNfts(filtered);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to load NFTs:", err);
       } finally {
         setLoading(false);
       }
@@ -26,31 +29,41 @@ export default function CollectionDetail() {
   }, [collectionId]);
 
   if (loading) {
-    return <div className="p-10 text-center text-cyan-300">Loading NFTs...</div>;
+    return (
+      <div className="p-10 text-center text-cyan-300">
+        Loading NFTs...
+      </div>
+    );
   }
 
   return (
     <div className="px-6 py-10 mx-auto max-w-7xl">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold capitalize text-cyan-300">
+      {/* ✅ HEADER */}
+      <div className="mb-10">
+        <h1 className="text-3xl font-bold text-cyan-300">
           Collection
         </h1>
+        <p className="mt-2 text-sm break-all text-slate-400">
+          {collectionId}
+        </p>
 
         <Link
           to="/collections"
-          className="text-cyan-400 hover:underline"
+          className="inline-block mt-4 text-cyan-400 hover:underline"
         >
           ← Back to Collections
         </Link>
       </div>
 
       {nfts.length === 0 ? (
-        <p className="text-slate-400">No NFTs found in this collection.</p>
+        <p className="text-slate-400">
+          No NFTs found in this collection.
+        </p>
       ) : (
         <div className="grid grid-cols-3 gap-6 md:grid-cols-2 sm:grid-cols-1">
           {nfts.map((nft) => (
             <div
-              key={nft.id}
+              key={nft.tokenId}
               className="p-5 rounded-3xl bg-gradient-to-br from-[#061f2f] to-[#020617]"
             >
               <img

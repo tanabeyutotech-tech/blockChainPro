@@ -1,28 +1,27 @@
-
 import { useEffect, useRef, useState } from "react";
 import { uploadFileToPinata, uploadJSONToPinata } from "../utils/pinata";
 import { mintAndListNFT } from "../utils/contract";
 import "./CreateModal.css";
 
-const CreateModal = ({ onClose, onMinted }) => {
+const CreateModal = ({ onClose, onMinted, collectionAddress }) => {
   const modalRef = useRef(null);
 
   const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(null);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
-  const [preview, setPreview] = useState(null);
 
-  // close on ESC
+  // ESC close
   useEffect(() => {
     const esc = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", esc);
     return () => window.removeEventListener("keydown", esc);
   }, [onClose]);
 
-  // close when clicking outside
+  // outside click close
   const handleOverlayClick = (e) => {
     if (modalRef.current && !modalRef.current.contains(e.target)) {
       onClose();
@@ -31,31 +30,38 @@ const CreateModal = ({ onClose, onMinted }) => {
 
   const handleMint = async () => {
     try {
-      if (!file) return alert("Select an image");
+      if (!file) return alert("Select image");
       if (!name.trim()) return alert("Enter NFT name");
       if (!price.trim()) return alert("Enter price");
-      if (!category.trim()) return alert("Enter category");
+      if (!category) return alert("Select category");
+      if (!collectionAddress) return alert("Collection not found");
+
       setLoading(true);
 
-      // 1. upload image
+      // 1️⃣ upload image
       const imageURI = await uploadFileToPinata(file);
-      console.log(`imageURI: ${imageURI}`);
 
-      // 2. upload metadata
+      // 2️⃣ upload metadata
       const tokenURI = await uploadJSONToPinata({
-        name: name,
-        description: description,
-        category: category,
+        name,
+        description,
         image: imageURI,
-
+        attributes: [
+          {
+            trait_type: "Category",
+            value: category,
+          },
+        ],
       });
 
-      console.log(`tokenURI: ${tokenURI}`);
-      
-      // 3. mint NFT
-      await mintAndListNFT(tokenURI, price, category);
-      console.log("mingted!");
-      alert("NFT minted!");
+      // 3️⃣ mint into selected collection
+      await mintAndListNFT(
+        collectionAddress,
+        tokenURI,
+        price
+      );
+
+      alert("NFT minted successfully!");
       onMinted();
       onClose();
     } catch (err) {
@@ -69,9 +75,8 @@ const CreateModal = ({ onClose, onMinted }) => {
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="sell-modal" ref={modalRef}>
-        <h2 className="sell-title">Sell NFT</h2>
+        <h2 className="sell-title">Mint NFT</h2>
 
-        {/* File Upload */}
         <label className="file-upload">
           Choose File
           <input
@@ -79,48 +84,36 @@ const CreateModal = ({ onClose, onMinted }) => {
             accept="image/*"
             hidden
             onChange={(e) => {
-              const selected = e.target.files[0];
-              if (!selected) return;
-              setFile(selected);
-              setPreview(URL.createObjectURL(selected));
-
+              const f = e.target.files[0];
+              if (!f) return;
+              setFile(f);
+              setPreview(URL.createObjectURL(f));
             }}
           />
         </label>
 
         <div className="image-preview">
-          {preview ? (
-            <img src={preview} alt="NFT Preview" />
-          ) : (
-            <span>No image selected</span>
-          )}
+          {preview ? <img src={preview} /> : <span>No image selected</span>}
         </div>
 
-        {/* NFT Name */}
         <input
-          type="text"
+          className="sell-input"
           placeholder="NFT Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="sell-input"
         />
 
-        {/* Price */}
         <input
-          type="text"
+          className="sell-input"
           placeholder="Price in ETH"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
-          className="sell-input price-input"
         />
 
-        {/* Category */}
-        
-
         <select
+          className="sell-input"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="sell-input"
         >
           <option value="" disabled>
             Select Category
@@ -132,20 +125,17 @@ const CreateModal = ({ onClose, onMinted }) => {
           <option value="Photography">Photography</option>
         </select>
 
-        {/* Description */}
         <textarea
-          placeholder="NFT Description"
+          className="sell-textarea" 
+          placeholder="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="sell-textarea"
         />
 
-        {/* Buttons */}
         <div className="sell-actions">
           <button className="btn-cancel" onClick={onClose}>
             Cancel
           </button>
-
           <button
             className="btn-confirm"
             onClick={handleMint}

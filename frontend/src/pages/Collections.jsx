@@ -39,7 +39,7 @@ export default function Collections() {
         {collections.map((col) => (
           <Link
             key={col.slug}
-            to={`/collections/${col.slug}`}
+            to={`/collections/${col.adress}`}
             className="p-5 transition rounded-3xl bg-gradient-to-br from-[#0f172a] to-[#020617] hover:scale-105"
           >
             <img
