@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
-import NFTFactoryArtifact from "../contracts/NFTFactory.json";
+import MarketplaceArtifact from "../contracts/NFTMarketplace.json";
 // const FACTORY_ADDRESS = "0xYOUR_FACTORY_ADDRESS"; // ← replace
 
-export async function getFactoryContract(CONTRACT_ADDRESS) {
+export async function getMarketplaceContract(CONTRACT_ADDRESS) {
   if (!window.ethereum) {
     throw new Error("MetaMask not installed");
   }
@@ -12,7 +12,7 @@ export async function getFactoryContract(CONTRACT_ADDRESS) {
 
   return new ethers.Contract(
     CONTRACT_ADDRESS,
-    NFTFactoryArtifact.abi,
+    MarketplaceArtifact.abi,
     signer
   );
 }

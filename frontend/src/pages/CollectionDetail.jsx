@@ -1,32 +1,41 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { fetchAllNFTs } from "../web3/fetchNFTs";
+import { fetchCollectionNFTs } from "../web3/fetchNFTs";
 
-export default function CollectionDetail() {
-  const { collectionId } = useParams(); // ✅ FIX
+export default function CollectionDetail({minted, mintedCallBack}) {
+  const { address } = useParams(); // ✅ FIX
   const [nfts, setNfts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+   async function loadNFTs() {
+    try {
+      const allNFTs = await fetchCollectionNFTs(address);
+
+      // const filtered = allNFTs.filter(
+      //   (nft) =>
+      //     nft.collection?.toLowerCase() === address.toLowerCase()
+      // );
+
+      setNfts(allNFTs);
+    } catch (err) {
+      console.error("Failed to load NFTs:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
-    async function loadNFTs() {
-      try {
-        const allNFTs = await fetchAllNFTs();
+    loadNFTs();
+  }, [address]);
 
-        const filtered = allNFTs.filter(
-          (nft) =>
-            nft.collection?.toLowerCase() === collectionId.toLowerCase()
-        );
-
-        setNfts(filtered);
-      } catch (err) {
-        console.error("Failed to load NFTs:", err);
-      } finally {
-        setLoading(false);
-      }
+  useEffect(() => {
+    if(minted){
+      loadNFTs();
+      console.log(`new colleciton mintedeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee`);
+      mintedCallBack();
     }
 
-    loadNFTs();
-  }, [collectionId]);
+  }, [minted]);
 
   if (loading) {
     return (
@@ -44,7 +53,7 @@ export default function CollectionDetail() {
           Collection
         </h1>
         <p className="mt-2 text-sm break-all text-slate-400">
-          {collectionId}
+          {address}
         </p>
 
         <Link
@@ -63,7 +72,7 @@ export default function CollectionDetail() {
         <div className="grid grid-cols-3 gap-6 md:grid-cols-2 sm:grid-cols-1">
           {nfts.map((nft) => (
             <div
-              key={nft.tokenId}
+              key={nft.address}
               className="p-5 rounded-3xl bg-gradient-to-br from-[#061f2f] to-[#020617]"
             >
               <img

@@ -1,161 +1,140 @@
-import { useEffect, useRef, useState } from "react";
-import { uploadFileToPinata, uploadJSONToPinata } from "../utils/pinata";
-import { mintAndListNFT } from "../utils/contract";
-import { fetchCollections } from "../web3/fetchCollections";
-import "./CreateModal.css";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { getFactoryContract } from "../web3/factory";
+import { uploadFileToPinata } from "../utils/pinata";
 
-export default function CreateModal({ onClose, onMinted }) {
-  const modalRef = useRef(null);
+export default function CreateCollection() {
+  const navigate = useNavigate();
 
-  const [collections, setCollections] = useState([]);
-  const [collectionAddress, setCollectionAddress] = useState("");
-
-  const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(null);
   const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("");
+  const [symbol, setSymbol] = useState("");
   const [description, setDescription] = useState("");
+  const [coverFile, setCoverFile] = useState(null);
+  const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ESC close
-  useEffect(() => {
-    const esc = (e) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", esc);
-    return () => window.removeEventListener("keydown", esc);
-  }, [onClose]);
+  async function handleCreate(e) {
+    e.preventDefault();
 
-  // Load collections
-  useEffect(() => {
-    fetchCollections().then(setCollections).catch(console.error);
-  }, []);
-
-  const handleOverlayClick = (e) => {
-    if (modalRef.current && !modalRef.current.contains(e.target)) {
-      onClose();
-    }
-  };
-
-  async function handleMint() {
-    if (!file) return alert("Select image");
-    if (!name) return alert("Enter name");
-    if (!price) return alert("Enter price");
-    const cleanPrice = price.trim();
-    if (!cleanPrice || isNaN(cleanPrice)) {
-      alert("Price must be a valid number (e.g. 0.01)");
+    if (!name || !symbol || !coverFile) {
+      alert("Name, Symbol, and Cover image are required");
       return;
     }
-    if (!category) return alert("Select category");
-    if (!collectionAddress) return alert("Select collection");
 
     try {
       setLoading(true);
 
-      const imageURI = await uploadFileToPinata(file);
+      // 1️⃣ upload cover image to Pinata
+      const coverImageUrl = await uploadFileToPinata(coverFile);
 
-      const tokenURI = await uploadJSONToPinata({
+      // 2️⃣ connect to factory
+      const factory = await getFactoryContract();
+
+      // 3️⃣ deploy new collection
+      const tx = await factory.createCollection(
         name,
-        description,
-        image: imageURI,
-        attributes: [{ trait_type: "Category", value: category }],
-      });
-
-      await mintAndListNFT(
-        collectionAddress,
-        tokenURI,
-        cleanPrice
+        symbol,
+        coverImageUrl
       );
 
-      alert("NFT minted!");
-      onMinted();
-      onClose();
+      await tx.wait();
+
+      alert("Collection created successfully!");
+      navigate("/collections");
     } catch (err) {
       console.error(err);
-      alert("Mint failed");
+      alert("Transaction failed");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="sell-modal" ref={modalRef}>
-        <h2 className="sell-title">Mint NFT</h2>
+    <div className="max-w-2xl px-6 py-10 mx-auto">
+      <h1 className="mb-6 text-3xl font-bold text-cyan-300">
+        Create New Collection
+      </h1>
 
-        {/* Collection */}
-        <select
-          className="sell-input"
-          value={collectionAddress}
-          onChange={(e) => setCollectionAddress(e.target.value)}
-        >
-          <option value="" disabled>
-            Select Collection
-          </option>
-          {collections.map((c) => (
-            <option key={c.address} value={c.address}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-
-        {/* Image */}
-        <label className="file-upload">
-          Choose File
+      <form
+        onSubmit={handleCreate}
+        className="p-6 space-y-5 rounded-3xl bg-gradient-to-br from-[#061f2f] to-[#020617]"
+      >
+        {/* Name */}
+        <div>
+          <label className="block mb-1 text-slate-400">
+            Collection Name
+          </label>
           <input
-            type="file"
-            hidden
-            accept="image/*"
-            onChange={(e) => {
-              setFile(e.target.files[0]);
-              setPreview(URL.createObjectURL(e.target.files[0]));
-            }}
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full p-3 text-white outline-none rounded-xl bg-black/40"
           />
-        </label>
-
-        {preview && <img src={preview} className="preview" />}
-
-        <input
-          className="sell-input"
-          placeholder="NFT Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-
-        <input
-          className="sell-input"
-          placeholder="Price in ETH"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
-
-        {/* Category (Home sidebar logic preserved) */}
-        <select
-          className="sell-input"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        >
-          <option value="">Select Category</option>
-          <option>Art</option>
-          <option>Animals</option>
-          <option>Music</option>
-          <option>Games</option>
-          <option>Photography</option>
-        </select>
-
-        <textarea
-          className="sell-textarea"
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-
-        <div className="sell-actions">
-          <button onClick={onClose}>Cancel</button>
-          <button onClick={handleMint} disabled={loading}>
-            {loading ? "Minting..." : "Confirm"}
-          </button>
         </div>
-      </div>
+
+        {/* Symbol */}
+        <div>
+          <label className="block mb-1 text-slate-400">
+            Symbol
+          </label>
+          <input
+            required
+            value={symbol}
+            onChange={(e) => setSymbol(e.target.value)}
+            className="w-full p-3 text-white rounded-xl bg-black/40"
+          />
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="block mb-1 text-slate-400">
+            Description
+          </label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full p-3 text-white outline-none rounded-xl bg-black/40"
+          />
+        </div>
+
+        {/* Cover Image Upload */}
+        <div>
+          <label className="block mb-2 text-slate-400">
+            Cover Image
+          </label>
+
+          <label className="inline-block px-4 py-2 font-semibold text-black cursor-pointer rounded-xl bg-cyan-500 hover:bg-cyan-400">
+            Choose Image
+            <input
+              type="file"
+              hidden
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                setCoverFile(file);
+                setPreview(URL.createObjectURL(file));
+              }}
+            />
+          </label>
+
+          {preview && (
+            <img
+              src={preview}
+              alt="Cover preview"
+              className="object-cover w-full h-48 mt-4 rounded-xl"
+            />
+          )}
+        </div>
+
+        {/* Submit */}
+        <button
+          disabled={loading}
+          className="w-full py-3 font-semibold text-black rounded-xl bg-cyan-500 hover:bg-cyan-400"
+        >
+          {loading ? "Creating..." : "Create Collection"}
+        </button>
+      </form>
     </div>
   );
 }

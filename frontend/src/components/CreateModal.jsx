@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { uploadFileToPinata, uploadJSONToPinata } from "../utils/pinata";
+import { useNavigate } from "react-router-dom";
 import { mintAndListNFT } from "../utils/contract";
 import { fetchCollections } from "../web3/fetchCollections";
+import { fetchCollectionNFTs } from "../web3/fetchNFTs";
+
 import "./CreateModal.css";
 
-export default function CreateModal({ onClose, onMinted }) {
+export default function CreateModal({ onClose, onMinted, onCollection }) {
+  const navigate = useNavigate();
   const modalRef = useRef(null);
 
   const [collections, setCollections] = useState([]);
@@ -73,6 +77,8 @@ export default function CreateModal({ onClose, onMinted }) {
       alert("NFT minted!");
       onMinted();
       onClose();
+      fetchCollectionNFTs(collectionAddress);
+
     } catch (err) {
       console.error(err);
       alert("Mint failed");

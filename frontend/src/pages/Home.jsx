@@ -144,6 +144,7 @@ export default function Home({ walletOpen, onClose, walletConected, minted, mint
     }    
 
     async function fetchListedNFTs(k) {
+        return;
         console.log(`fetch function`);
         if (!window.ethereum) return;
 

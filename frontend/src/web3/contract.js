@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
-import NFTFactoryArtifact from "../contracts/NFTFactory.json";
+import NFTContractArtifact from "../contracts/NFT.json";
 // const FACTORY_ADDRESS = "0xYOUR_FACTORY_ADDRESS"; // ← replace
 
-export async function getFactoryContract(CONTRACT_ADDRESS) {
+export async function getNFTContract(CONTRACT_ADDRESS) {
   if (!window.ethereum) {
     throw new Error("MetaMask not installed");
   }
@@ -12,7 +12,15 @@ export async function getFactoryContract(CONTRACT_ADDRESS) {
 
   return new ethers.Contract(
     CONTRACT_ADDRESS,
-    NFTFactoryArtifact.abi,
+    NFTContractArtifact.abi,
     signer
   );
+}
+
+export async function ipfsToHttp(ipfsUrl) {
+    if (!ipfsUrl) return "";
+    return ipfsUrl.replace(
+        "ipfs://",
+        "https://gateway.pinata.cloud/ipfs/"
+    );
 }

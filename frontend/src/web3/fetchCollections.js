@@ -1,5 +1,7 @@
 import { ethers } from "ethers";
 import NFTArtifact from "../contracts/NFT.json";
+import { NFT_FACTORY_ADDRESS } from "../contracts/addresses";
+
 import { getFactoryContract } from "./factory";
 
 export async function fetchCollections() {
@@ -8,10 +10,18 @@ export async function fetchCollections() {
   const provider = new ethers.BrowserProvider(window.ethereum);
   const signer = await provider.getSigner();
 
-  const factory = await getFactoryContract();
+  const factory = await getFactoryContract(NFT_FACTORY_ADDRESS);
   const addresses = await factory.getCollections();
 
+  function ipfsToHttp(ipfsUrl) {
+    if (!ipfsUrl) return "";
+    return ipfsUrl.replace(
+        "ipfs://",
+        "https://gateway.pinata.cloud/ipfs/"
+    );
+  }
   return Promise.all(
+    
     addresses.map(async (addr) => {
       const nft = new ethers.Contract(
         addr,
@@ -21,12 +31,12 @@ export async function fetchCollections() {
         console.log(`collection data: ${await nft.collectionName()}`);
         console.log(`collection data: ${await nft.collectionSymbol()}`);
         console.log(`collection data: ${await nft.collectionCover()}`);
-
+      
       return {
         address: addr,
         name: await nft.collectionName(),
         symbol: await nft.collectionSymbol(),
-        cover: await nft.collectionCover(),
+        coverImageUrl: ipfsToHttp(await nft.collectionCover()),
       };
     })
   );

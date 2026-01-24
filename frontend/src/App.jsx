@@ -27,14 +27,14 @@ export default function App() {
             <Route
               path="/"
               element={
-                <Home walletOpen={walletOpen} onClose={() => setWalletOpen(false)} walletConected={walletConected} minted={minted} mintedCallBack={() => {setMinted(false); console.log(`minted callback ${minted}`)}} />
+                <Home walletOpen={walletOpen} onClose={() => setWalletOpen(false)} walletConected={walletConected} minted={minted} mintedCallBack={() => {setMinted(false); }} />
               }
             >
             </Route>
             <Route path="/collections" element={<Collections />} />
             <Route
-              path="/collections/:collectionId"
-              element={<CollectionDetail />}
+              path="/collections/:address"
+              element={<CollectionDetail minted={minted} mintedCallBack={() => {setMinted(false); }}/>}
 
             >
             </Route>

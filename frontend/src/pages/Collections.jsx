@@ -6,6 +6,13 @@ export default function Collections() {
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  function ipfsToHttp(ipfsUrl) {
+    if (!ipfsUrl) return "";
+    return ipfsUrl.replace(
+        "ipfs://",
+        "https://gateway.pinata.cloud/ipfs/"
+    );
+  }
   useEffect(() => {
     async function loadCollections() {
       try {
@@ -40,11 +47,11 @@ export default function Collections() {
         {collections.map((col) => (
           <Link
             key={col.address}
-            to={`/collections/${col.adress}`}
+            to={`/collections/${col.address}`}
             className="p-5 transition rounded-3xl bg-gradient-to-br from-[#0f172a] to-[#020617] hover:scale-105"
           >
             <img
-              src={col.cover}
+              src={col.coverImageUrl}
               onError={(e) => (e.target.src = "/placeholder.png")}
               alt={col.name}
               className="object-cover w-full h-48 mb-4 rounded-xl"

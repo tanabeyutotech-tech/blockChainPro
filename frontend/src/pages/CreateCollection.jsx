@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getFactoryContract } from "../web3/factory";
+import { uploadFileToPinata } from "../utils/pinata";
+import { NFT_FACTORY_ADDRESS } from "../contracts/addresses";
 
 export default function CreateCollection() {
   const navigate = useNavigate();
@@ -8,28 +10,30 @@ export default function CreateCollection() {
   const [name, setName] = useState("");
   const [symbol, setSymbol] = useState("");
   const [description, setDescription] = useState("");
-  const [cover, setCover] = useState("");
+  const [coverFile, setCoverFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+
   const [loading, setLoading] = useState(false);
 
   async function handleCreate(e) {
     e.preventDefault();
 
-    if (!name || !symbol || !cover) {
+    if (!name || !symbol || !coverFile) {
       alert("Name, Symbol, and Cover are required");
       return;
     }
 
     try {
       setLoading(true);
-
+      const coverImageUrl = await uploadFileToPinata(coverFile);
       // connect to factory
-      const factory = await getFactoryContract();
+      const factory = await getFactoryContract(NFT_FACTORY_ADDRESS);
 
       // deploy new NFT collection
       const tx = await factory.createCollection(
         name,
         symbol,
-        cover
+        coverImageUrl
       );
 
       await tx.wait();
@@ -89,15 +93,34 @@ export default function CreateCollection() {
           />
         </div>
 
+        {/* Cover Image Upload */}
         <div>
-          <label className="block mb-1 text-slate-400">
-            Cover Image URL
+          <label className="block mb-2 text-slate-400">
+            Cover Image
           </label>
-          <input
-            value={cover}
-            onChange={(e) => setCover(e.target.value)}
-            className="w-full p-3 text-white outline-none rounded-xl bg-black/40"
-          />
+
+          <label className="inline-block px-4 py-2 font-semibold text-black cursor-pointer rounded-xl bg-cyan-500 hover:bg-cyan-400">
+            Choose Image
+            <input
+              type="file"
+              hidden
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                setCoverFile(file);
+                setPreview(URL.createObjectURL(file));
+              }}
+            />
+          </label>
+
+          {preview && (
+            <img
+              src={preview}
+              alt="Cover preview"
+              className="object-cover w-full h-48 mt-4 rounded-xl"
+            />
+          )}
         </div>
 
         <button
