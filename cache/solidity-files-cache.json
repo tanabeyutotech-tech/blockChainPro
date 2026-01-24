@@ -1678,8 +1678,8 @@
       ]
     },
     "E:\\software\\blockChainPro.24.3.50\\contracts\\NFTMarketplace.sol": {
-      "lastModificationDate": 1769201185787,
-      "contentHash": "082aa118552e94aee30bf1302d52144e",
+      "lastModificationDate": 1769222977946,
+      "contentHash": "17120a878aa6f518037fbbc3e8cd1a11",
       "sourceName": "contracts/NFTMarketplace.sol",
       "solcConfig": {
         "version": "0.8.28",
@@ -1706,15 +1706,14 @@
         }
       },
       "imports": [
-        "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
-        "@openzeppelin/contracts/token/ERC721/IERC721.sol"
+        "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol",
+        "@openzeppelin/contracts/access/Ownable.sol"
       ],
       "versionPragmas": [
         "^0.8.20"
       ],
       "artifacts": [
-        "IToken",
-        "NFTMarketplace"
+        "NFT"
       ]
     },
     "E:\\software\\blockChainPro.24.3.50\\node_modules\\@openzeppelin\\contracts\\utils\\ReentrancyGuard.sol": {
