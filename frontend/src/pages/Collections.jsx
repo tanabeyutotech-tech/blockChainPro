@@ -10,6 +10,7 @@ export default function Collections() {
     async function loadCollections() {
       try {
         const data = await fetchCollections();
+
         setCollections(data);
       } catch (err) {
         console.error(err);
@@ -38,7 +39,7 @@ export default function Collections() {
       <div className="grid grid-cols-3 gap-6 md:grid-cols-2 sm:grid-cols-1">
         {collections.map((col) => (
           <Link
-            key={col.slug}
+            key={col.address}
             to={`/collections/${col.adress}`}
             className="p-5 transition rounded-3xl bg-gradient-to-br from-[#0f172a] to-[#020617] hover:scale-105"
           >

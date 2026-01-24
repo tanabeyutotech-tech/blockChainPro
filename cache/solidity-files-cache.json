@@ -2439,8 +2439,8 @@
       ]
     },
     "E:\\software\\blockChainPro.24.3.50\\contracts\\Token.sol": {
-      "lastModificationDate": 1769244900237,
-      "contentHash": "5dedd54df5d249b41d6b64045cb87af1",
+      "lastModificationDate": 1769268409392,
+      "contentHash": "782b5d6e237d39a51751a43116c5fcae",
       "sourceName": "contracts/Token.sol",
       "solcConfig": {
         "version": "0.8.28",

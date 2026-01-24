@@ -1,44 +1,33 @@
-import { getFactoryContract } from "./factory";
 import { ethers } from "ethers";
 import NFTArtifact from "../contracts/NFT.json";
-
+import { getFactoryContract } from "./factory";
 
 export async function fetchCollections() {
-  if (!window.ethereum) {
-    throw new Error("MetaMask not installed");
-  }
+  if (!window.ethereum) throw new Error("No wallet");
 
   const provider = new ethers.BrowserProvider(window.ethereum);
   const signer = await provider.getSigner();
 
   const factory = await getFactoryContract();
-  const collections = await factory.getCollections(); // array of addresses
+  const addresses = await factory.getCollections();
 
-  const result = await Promise.all(
-    collections.map(async (col) => {
+  return Promise.all(
+    addresses.map(async (addr) => {
       const nft = new ethers.Contract(
-        col,
+        addr,
         NFTArtifact.abi,
         signer
       );
-
-      console.log(`collection address: ${col}`);
-
-      const name = await nft.collectionName();      // ✅ correct
-      const symbol = await nft.collectionSymbol();  // ✅
-      const cover = await nft.collectionCover();    // ✅
-      const total = await nft.nextTokenId();        // ✅
-      console.log(`collection symbol: ${symbol}`);
+        console.log(`collection data: ${await nft.collectionName()}`);
+        console.log(`collection data: ${await nft.collectionSymbol()}`);
+        console.log(`collection data: ${await nft.collectionCover()}`);
 
       return {
-        address: col,
-        name,
-        symbol,
-        cover,
-        nftCount: Number(total),
+        address: addr,
+        name: await nft.collectionName(),
+        symbol: await nft.collectionSymbol(),
+        cover: await nft.collectionCover(),
       };
     })
   );
-
-  return result;
 }

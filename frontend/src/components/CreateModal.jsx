@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { uploadFileToPinata, uploadJSONToPinata } from "../utils/pinata";
 import { mintAndListNFT } from "../utils/contract";
+import { fetchCollections } from "../web3/fetchCollections";
 import "./CreateModal.css";
 
-const CreateModal = ({ onClose, onMinted, collectionAddress }) => {
+export default function CreateModal({ onClose, onMinted }) {
   const modalRef = useRef(null);
+
+  const [collections, setCollections] = useState([]);
+  const [collectionAddress, setCollectionAddress] = useState("");
 
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -21,80 +25,98 @@ const CreateModal = ({ onClose, onMinted, collectionAddress }) => {
     return () => window.removeEventListener("keydown", esc);
   }, [onClose]);
 
-  // outside click close
+  // Load collections
+  useEffect(() => {
+    fetchCollections().then(setCollections).catch(console.error);
+  }, []);
+
   const handleOverlayClick = (e) => {
     if (modalRef.current && !modalRef.current.contains(e.target)) {
       onClose();
     }
   };
 
-  const handleMint = async () => {
-    try {
-      if (!file) return alert("Select image");
-      if (!name.trim()) return alert("Enter NFT name");
-      if (!price.trim()) return alert("Enter price");
-      if (!category) return alert("Select category");
-      if (!collectionAddress) return alert("Collection not found");
+  async function handleMint() {
+    if (!file) return alert("Select image");
+    if (!name) return alert("Enter name");
+    if (!price) return alert("Enter price");
+    const cleanPrice = price.trim();
+    if (!cleanPrice || isNaN(cleanPrice)) {
+      alert("Price must be a valid number (e.g. 0.01)");
+      return;
+    }
+    if (!category) return alert("Select category");
+    if (!collectionAddress) return alert("Select collection");
 
+    try {
       setLoading(true);
 
-      // 1️⃣ upload image
       const imageURI = await uploadFileToPinata(file);
+      console.log(`imgaURI: ${imageURI}`);
 
-      // 2️⃣ upload metadata
       const tokenURI = await uploadJSONToPinata({
         name,
         description,
         image: imageURI,
-        attributes: [
-          {
-            trait_type: "Category",
-            value: category,
-          },
-        ],
+        attributes: [{ trait_type: "Category", value: category }],
       });
+      console.log(`tokenURI: ${tokenURI}`);
+      console.log(`collectionAddress: ${collectionAddress}`);
+      console.log(`cleanPrice: ${cleanPrice}`);
 
-      // 3️⃣ mint into selected collection
       await mintAndListNFT(
         collectionAddress,
         tokenURI,
-        price
+        cleanPrice
       );
 
-      alert("NFT minted successfully!");
+      alert("NFT minted!");
       onMinted();
       onClose();
     } catch (err) {
       console.error(err);
-      alert("Mint failed. Check console.");
+      alert("Mint failed");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="sell-modal" ref={modalRef}>
         <h2 className="sell-title">Mint NFT</h2>
 
+        {/* Collection */}
+        <select
+          className="sell-input"
+          value={collectionAddress}
+          onChange={(e) => setCollectionAddress(e.target.value)}
+        >
+          <option value="" disabled>
+            Select Collection
+          </option>
+          {collections.map((c) => (
+            <option key={c.address} value={c.address}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Image */}
         <label className="file-upload">
           Choose File
           <input
             type="file"
-            accept="image/*"
             hidden
+            accept="image/*"
             onChange={(e) => {
-              const f = e.target.files[0];
-              if (!f) return;
-              setFile(f);
-              setPreview(URL.createObjectURL(f));
+              setFile(e.target.files[0]);
+              setPreview(URL.createObjectURL(e.target.files[0]));
             }}
           />
         </label>
 
-        <div className="image-preview">
-          {preview ? <img src={preview} /> : <span>No image selected</span>}
-        </div>
+        {preview && <img src={preview} className="preview" />}
 
         <input
           className="sell-input"
@@ -110,43 +132,34 @@ const CreateModal = ({ onClose, onMinted, collectionAddress }) => {
           onChange={(e) => setPrice(e.target.value)}
         />
 
+        {/* Category (Home sidebar logic preserved) */}
         <select
           className="sell-input"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
         >
-          <option value="" disabled>
-            Select Category
-          </option>
-          <option value="Art">Art</option>
-          <option value="Animals">Animals</option>
-          <option value="Music">Music</option>
-          <option value="Games">Games</option>
-          <option value="Photography">Photography</option>
+          <option value="">Select Category</option>
+          <option>Art</option>
+          <option>Animals</option>
+          <option>Music</option>
+          <option>Games</option>
+          <option>Photography</option>
         </select>
 
         <textarea
-          className="sell-textarea" 
+          className="sell-textarea"
           placeholder="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
 
         <div className="sell-actions">
-          <button className="btn-cancel" onClick={onClose}>
-            Cancel
-          </button>
-          <button
-            className="btn-confirm"
-            onClick={handleMint}
-            disabled={loading}
-          >
+          <button onClick={onClose}>Cancel</button>
+          <button onClick={handleMint} disabled={loading}>
             {loading ? "Minting..." : "Confirm"}
           </button>
         </div>
       </div>
     </div>
   );
-};
-
-export default CreateModal;
+}

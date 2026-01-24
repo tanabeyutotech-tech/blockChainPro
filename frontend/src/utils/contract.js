@@ -3,14 +3,11 @@ import NFTArtifact from "../contracts/NFT.json";
 import MarketplaceArtifact from "../contracts/NFTMarketplace.json";
 import { MARKETPLACE_ADDRESS } from "../contracts/addresses";
 
-/**
- * Mint NFT into a SPECIFIC collection + list on marketplace
- */
-export const mintAndListNFT = async (
+export async function mintAndListNFT(
   collectionAddress,
   tokenURI,
-  nft_price
-) => {
+  priceEth
+) {
   if (!window.ethereum) {
     alert("MetaMask not installed");
     return;
@@ -19,52 +16,42 @@ export const mintAndListNFT = async (
   const provider = new ethers.BrowserProvider(window.ethereum);
   const signer = await provider.getSigner();
 
-  // 🔥 collection contract (dynamic)
-  const collection = new ethers.Contract(
+  const contract = new ethers.Contract(
     collectionAddress,
     NFTArtifact.abi,
     signer
   );
 
-  // marketplace contract
+  console.log(`get contract `);
+
+  // await contract.setMarketplace(MARKETPLACE_ADDRESS);
+
+  console.log(`setmarketpalce `);
+
   const marketplace = new ethers.Contract(
     MARKETPLACE_ADDRESS,
     MarketplaceArtifact.abi,
     signer
-  );
+    );
+    const ty = await contract.setApprovalForAll(MARKETPLACE_ADDRESS, true);
+    await ty.wait();
 
-  // approve marketplace
-  const approveTx = await collection.setApprovalForAll(
-    MARKETPLACE_ADDRESS,
-    true
-  );
-  await approveTx.wait();
+    console.log(`marketpalce `);
 
-  const price = ethers.parseEther(nft_price);
+    const price = ethers.parseEther(priceEth);
+    console.log(`price: ${price} `);
 
-  // 🔥 mint + list
-  const tx = await marketplace.mintAndListNFT(
-    collectionAddress,
-    tokenURI,
-    price
-  );
+    const tz = await contract.setMarketplace(MARKETPLACE_ADDRESS);
+    tz.wait();
+    console.log(`setmarkeplaced: ${price} `);
 
-  await tx.wait();
-};
+    const tx = await marketplace.mintAndListNFT(
+      collectionAddress,
+      tokenURI,
+      price
+    );
+    console.log(`marketpalceAdreess : ${MARKETPLACE_ADDRESS} `);
 
-/**
- * Optional helper
- */
-export const approveMarketplace = async (collectionAddress) => {
-  const provider = new ethers.BrowserProvider(window.ethereum);
-  const signer = await provider.getSigner();
+    await tx.wait();
 
-  const nft = new ethers.Contract(
-    collectionAddress,
-    NFTArtifact.abi,
-    signer
-  );
-
-  const tx = await nft.setApprovalForAll(MARKETPLACE_ADDRESS, true);
-  await tx.wait();
-};
+}

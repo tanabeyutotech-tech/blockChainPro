@@ -55,7 +55,7 @@ contract NFT is ERC721URIStorage, Ownable {
         string memory uri
     )
         external
-        onlyAuthorized
+        
         returns (uint256)
     {
         uint256 tokenId = nextTokenId;
