@@ -2516,8 +2516,8 @@
       ]
     },
     "E:\\software\\blockChainPro.24.3.50\\contracts\\NFTFactory.sol": {
-      "lastModificationDate": 1769222123380,
-      "contentHash": "4cad2a9221988ee4cd1386514711beef",
+      "lastModificationDate": 1769223464272,
+      "contentHash": "4f063f0c81f026c18ce0abf12bb82d28",
       "sourceName": "contracts/NFTFactory.sol",
       "solcConfig": {
         "version": "0.8.28",
@@ -2543,9 +2543,15 @@
           }
         }
       },
-      "imports": [],
-      "versionPragmas": [],
-      "artifacts": []
+      "imports": [
+        "./Token.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "NFTFactory"
+      ]
     }
   }
 }
