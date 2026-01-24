@@ -8,9 +8,22 @@ contract NFT is ERC721URIStorage, Ownable {
     uint256 public nextTokenId;
     address public marketplace;
 
+    string public collectionName;
+    string public collectionSymbol;
+    string public collectionCover;
+
     event Minted(address indexed to, uint256 indexed tokenId, string tokenURI);
 
-    constructor() ERC721("My NFT", "MNFT") Ownable(msg.sender) {}
+    constructor(        
+        string memory _name,
+        string memory _symbol,
+        string memory _cover,
+        address _creator
+        ) ERC721("My NFT", "MNFT") Ownable(_creator) {
+            collectionName = _name;
+            collectionSymbol = _symbol;
+            collectionCover = _cover;
+        }
 
     function setMarketplace(address _marketplace) external onlyOwner {
         marketplace = _marketplace;
@@ -21,8 +34,17 @@ contract NFT is ERC721URIStorage, Ownable {
         _;
     }
 
+    modifier onlyAuthorized() {
+        require(
+            msg.sender == owner() || msg.sender == marketplace,
+            "Not authorized"
+        );
+        _;
+    }
+
     function mint(address to, string memory uri)
-        external
+        external 
+        onlyAuthorized
         returns (uint256)
     {
         uint256 tokenId = nextTokenId++;
