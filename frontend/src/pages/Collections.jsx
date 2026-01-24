@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { fetchAllNFTs } from "../web3/fetchNFTs";
-import { groupByCollection } from "../web3/groupNFTs";
-
+import { fetchCollections } from "../web3/fetchCollections";
 export default function Collections() {
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,9 +8,8 @@ export default function Collections() {
   useEffect(() => {
     async function loadCollections() {
       try {
-        const nfts = await fetchAllNFTs();
-        const grouped = groupByCollection(nfts);
-        setCollections(grouped);
+        const data = await fetchCollections();
+        setCollections(data);
       } catch (err) {
         console.error(err);
       } finally {
@@ -54,7 +51,7 @@ export default function Collections() {
             </h2>
 
             <p className="text-sm text-slate-400">
-              {col.nfts.length} NFTs
+              {col.nftCount} NFTs
             </p>
           </Link>
         ))}

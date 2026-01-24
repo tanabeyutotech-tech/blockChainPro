@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { fetchAllNFTs } from "../web3/fetchNFTs";
 
 export default function CollectionDetail() {
-  const { collectionId } = useParams();
+  const { collectionId: collectionAddress } = useParams();
   const [nfts, setNfts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +33,7 @@ export default function CollectionDetail() {
     <div className="px-6 py-10 mx-auto max-w-7xl">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold capitalize text-cyan-300">
-          {collectionId} Collection
+          Collection
         </h1>
 
         <Link
